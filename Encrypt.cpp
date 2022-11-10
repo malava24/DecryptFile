@@ -99,7 +99,7 @@ void CalculateHash(const std::vector<unsigned char>& data, std::vector<unsigned 
 void Encrypt()
 {
     std::vector<unsigned char> plainText;
-    ReadFile("A:/1/DecryptFile/plain_text", plainText);
+    ReadFile("plain_text", plainText);
     
     std::vector<unsigned char> hash;
     CalculateHash(plainText, hash);
@@ -107,38 +107,9 @@ void Encrypt()
     std::vector<unsigned char> chipherText;
     EncryptAes(plainText, chipherText);
 
-    WriteFile("A:/1/DecryptFile/chipher_text", chipherText);
+    WriteFile("chipher_text", chipherText);
 
-    AppendToFile("A:/1/DecryptFile/chipher_text", hash);
-}
-
-void DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsigned char>& plainText, std::vector<unsigned char>& hash)
-{
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    if (!EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
-    {
-        throw std::runtime_error("DecryptInit error");
-    }
-
-    std::vector<unsigned char> plainTextTextBuf(chipherText.size() + AES_DECRYPT);
-    int plainTextSize = 0;
-
-    if (!EVP_DecryptUpdate(ctx, &plainTextTextBuf[0], &plainTextSize, &chipherText[0], chipherText.size() - hash.size())) {
-        EVP_CIPHER_CTX_free(ctx);
-        throw std::runtime_error("Decrypt error");
-    }
-
-    int lastPartLen = 0;
-    if (!EVP_DecryptFinal_ex(ctx, &plainTextTextBuf[0] + plainTextSize, &lastPartLen)) {
-        EVP_CIPHER_CTX_free(ctx);
-        throw std::runtime_error("DecryptFinal error");
-    }
-    plainTextSize += lastPartLen;
-    plainTextTextBuf.erase(plainTextTextBuf.begin() + plainTextSize, plainTextTextBuf.end());
-
-    plainText.swap(plainTextTextBuf);
-
-    EVP_CIPHER_CTX_free(ctx);
+    AppendToFile("chipher_text", hash);
 }
 
 void Decrypt()
@@ -154,7 +125,7 @@ void Decrypt()
 
     WriteFile("A:/1/DecryptFile/plain_text2", plainText);
 
-
+     
 }
 int main()
 {

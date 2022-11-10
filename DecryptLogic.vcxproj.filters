@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DecryptLogic.cpp">
+    <ClCompile Include="..\BruteForce\Encrypt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

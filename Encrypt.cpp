@@ -56,7 +56,7 @@ void PasswordToKey(std::string& password)
     }
 }
 
-void EncryptAes(const std::vector<unsigned char> plainText, std::vector<unsigned char>& chipherText)
+/*void EncryptAes(const std::vector<unsigned char> plainText, std::vector<unsigned char>& chipherText)
 {
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     if (!EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
@@ -82,21 +82,11 @@ void EncryptAes(const std::vector<unsigned char> plainText, std::vector<unsigned
     chipherText.swap(chipherTextBuf);
 
     EVP_CIPHER_CTX_free(ctx);
-}
+}*/
 
-void CalculateHash(const std::vector<unsigned char>& data, std::vector<unsigned char>& hash)
-{
-    std::vector<unsigned char> hashTmp(SHA256_DIGEST_LENGTH);
 
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, &data[0], data.size());
-    SHA256_Final(&hashTmp[0], &sha256);
 
-    hash.swap(hashTmp);
-}
-
-void Encrypt()
+/*void Encrypt()
 {
     std::vector<unsigned char> plainText;
     ReadFile("plain_text", plainText);
@@ -110,6 +100,18 @@ void Encrypt()
     WriteFile("chipher_text", chipherText);
 
     AppendToFile("chipher_text", hash);
+}*/
+
+void CalculateHash(const std::vector<unsigned char>& data, std::vector<unsigned char>& hash)
+{
+    std::vector<unsigned char> hashTmp(SHA256_DIGEST_LENGTH);
+
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, &data[0], data.size());
+    SHA256_Final(&hashTmp[0], &sha256);
+
+    hash.swap(hashTmp);
 }
 void DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsigned char>& plainText, std::vector<unsigned char>& hash)
 {
@@ -154,7 +156,7 @@ void Decrypt()
 
      
 }
-int main()
+int main(int argc, char* argv[])
 {
     std::string pass = "pass";
     try
@@ -162,7 +164,7 @@ int main()
         OpenSSL_add_all_digests();
         PasswordToKey(pass);
 
-        Encrypt();
+            
         Decrypt();
     }
     catch (const std::runtime_error& ex)

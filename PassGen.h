@@ -1,13 +1,21 @@
 #pragma once
+#include <vector>
+#include <iostream>
 
 class PassGen {
 public:
-    void ExportPassToFile();
-    void PassGenerator(int passLenght);
-    void NumOfChars(int passLenght);
+
+	 
+	bool GetPasswordsBatch(std::vector<std::string>& passwords, size_t passwordsCount);
+
 
 private:
-    int m_numOfSmallChars;
-    int m_numOfNumbers;
-    char* m_password;
+	bool isZero();
+private:
+	std::string m_symbolsForPass = "0123456789abcdefghijklmnopqrstuvwxyz";
+	int m_passwordLength = 1;
+	int m_j = 0;
+	std::vector<int> m_sate;
+
+	
 };

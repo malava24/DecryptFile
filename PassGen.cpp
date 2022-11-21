@@ -1,40 +1,50 @@
 #include "PassGen.h"
 
-void PassGen::ExportPassToFile(){
 
-    int passLenght = 4;
-    int numOfPasswords = 100000;
-    const char* filename = "A:/wordlist.txt";
-
-    std::ofstream outFile(filename);
-
-    for (int k = 0; k < numOfPasswords; k++) {
-        for (int i = 0; i < passLenght; ++i) {
-            numOfChars(passLenght);
-            passGenerator(passLenght);
-            outFile << m_password[i];
-        }
-        outFile << std::endl;
-    }
-    outFile.close();
+		
+  
+	bool PassGen::isZero() {
+		for (size_t i = 0; i < m_sate.size(); ++i){
+			if(m_sate[i] != 0){
+				return false;
+			}
+		}
+		return true;
 }
 
-void PassGen::PassGenerator(int passLenght){
+bool PassGen::GetPasswordsBatch(std::vector<std::string>& passwords, size_t passwordsCount) {
+	std::string tmp;
+	size_t sizeForGenBatchStops = passwords.size() + passwordsCount;
 
-    m_password = new char[passLenght];
+	for (; m_passwordLength < 5; ++m_passwordLength) {
 
-    for (int i = 0; i < m_numOfNumbers; ++i) {
-        m_password[i] = char(rand() % 10 + 48);
-    }
-    for (int i = m_numOfNumbers; i < passLenght; ++i) {
-        m_password[i] = char(rand() % 26 + 97);
-    }
-    std::random_shuffle(m_password, m_password + passLenght);
+		if (isZero()) {
+			m_sate.assign(m_passwordLength + 1, 0);
+		}
+		for (;;)
+		{
+
+			if (passwords.size() == sizeForGenBatchStops) {
+				return true;
+			}
+			for (unsigned int i = 1; i < m_sate.size(); ++i) {
+				tmp.push_back(m_symbolsForPass[m_sate[i]]);
+			}
+			passwords.push_back(tmp);
+			tmp.clear();
+
+
+
+			for (m_j = m_passwordLength; m_sate[m_j] == (m_j ? 35 : 1); --m_j) {
+				m_sate[m_j] = 0;
+			}
+			if (m_j == 0) break;
+			m_sate[m_j]++;
+		}
+	}
+	return true;
 }
 
-void PassGen::NumOfChars(int passLenght){
 
-    m_numOfSmallChars = rand() % passLenght;
-    int charRandEnd = passLenght - m_numOfSmallChars;
-    m_numOfNumbers = passLenght - m_numOfSmallChars;
-}
+
+

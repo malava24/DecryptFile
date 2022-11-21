@@ -7,6 +7,7 @@
 #include "openssl/evp.h"
 #include <openssl/aes.h>
 #include "openssl/sha.h"
+#include "PassGen.h"
 
 unsigned char key[EVP_MAX_KEY_LENGTH];
 unsigned char iv[EVP_MAX_IV_LENGTH];
@@ -144,7 +145,7 @@ void DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsign
 void Decrypt()
 {
     std::vector<unsigned char> chipherText;
-    ReadFile("A:/1/DecryptFile/chipher_text", chipherText);
+    ReadFile("A:/1/DecryptFile/chipher_text_brute_force", chipherText);
 
     std::vector<unsigned char> hash;
     CalculateHash(chipherText, hash);

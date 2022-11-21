@@ -137,6 +137,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\BruteForce\Encrypt.cpp" />
+    <ClCompile Include="PassGen.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PassGen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

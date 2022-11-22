@@ -136,7 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\BruteForce\Encrypt.cpp" />
+    <ClCompile Include="Decrypt.cpp" />
     <ClCompile Include="PassGen.cpp" />
   </ItemGroup>
   <ItemGroup>

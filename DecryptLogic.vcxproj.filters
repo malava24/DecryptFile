@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\BruteForce\Encrypt.cpp">
+    <ClCompile Include="PassGen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PassGen.cpp">
+    <ClCompile Include="Decrypt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

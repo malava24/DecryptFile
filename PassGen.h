@@ -6,7 +6,7 @@ class PassGen {
 public:
 
 	 
-	bool GetPasswordsBatch(std::vector<std::string>& passwords, size_t passwordsCount);
+	bool GetPasswordsBatch(std::vector<std::string>& passwords );
 
 
 private:
@@ -16,6 +16,6 @@ private:
 	int m_passwordLength = 1;
 	int m_j = 0;
 	std::vector<int> m_sate;
-
+	const size_t m_passwordsCount = 10000;
 	
 };

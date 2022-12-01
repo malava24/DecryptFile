@@ -9,13 +9,12 @@
 		return true;
 }
 
-bool PassGen::GetPasswordsBatch(std::vector<std::string>& passwords, size_t passwordsCount) {
+bool PassGen::GetPasswordsBatch(std::vector<std::string>& passwords) {
 	if (m_passwordLength == 5) {
 		return false;
 	}
 	std::string tmp;
-	 
-
+ 
 	for (; m_passwordLength < 5; ++m_passwordLength) {
 
 		if (isZero()) {
@@ -24,7 +23,7 @@ bool PassGen::GetPasswordsBatch(std::vector<std::string>& passwords, size_t pass
 		for (;;)
 		{
 
-			if (passwords.size() == passwordsCount) {
+			if (passwords.size() == m_passwordsCount) {
 				return true;
 			}
 			for (unsigned int i = 1; i < m_sate.size(); ++i) {

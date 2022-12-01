@@ -8,8 +8,8 @@
 #include <openssl/aes.h>
 #include "openssl/sha.h"
 #include "../DecryptFile/PassGen.h"
-
-
+#include <mutex>
+#include <thread>
 
 unsigned char key[EVP_MAX_KEY_LENGTH];
 unsigned char iv[EVP_MAX_IV_LENGTH];
@@ -44,6 +44,7 @@ void AppendToFile(const std::string& filePath, const std::vector<unsigned char>&
 
 void PasswordToKey(std::string& password)
 {
+	OpenSSL_add_all_digests();
 	const EVP_MD* dgst = EVP_get_digestbyname("md5");
 	if (!dgst)
 	{
@@ -78,7 +79,7 @@ bool DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsign
 	EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 	if (!EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
 	{
-		throw std::runtime_error("DecryptInit error");
+		return false;
 	}
 
 	std::vector<unsigned char> plainTextTextBuf(chipherText.size() + AES_DECRYPT);
@@ -86,7 +87,7 @@ bool DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsign
 
 	if (!EVP_DecryptUpdate(ctx, &plainTextTextBuf[0], &plainTextSize, &chipherText[0], chipherText.size() - SHA256_DIGEST_LENGTH)) {
 		EVP_CIPHER_CTX_free(ctx);
-		throw std::runtime_error("Decrypt error");
+		return false;
 	}
 
 	int lastPartLen = 0;
@@ -104,54 +105,81 @@ bool DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsign
 	return true;
 }
 
-std::vector<unsigned char> chipherText;
-std::vector<unsigned char> plainText;
-std::vector<unsigned char> hash;
+	std::vector<unsigned char> plainText;
+	std::vector<unsigned char> chipherText;
+	std::vector<unsigned char> hash;
 void Decrypt()
 {
-	ReadFile("A:/1/DecryptFile/chipher_text_brute_force", chipherText);
 	WriteFile("A:/1/DecryptFile/plain_text2", plainText);
 }
 
-bool isHash() {
-	CalculateHash(chipherText, hash);
-	return true;
+void ReadChipherHash(std::vector<unsigned char>& chipherHash) {
+		int a = 0;
+	for (int i = chipherText.size() - 32; i < chipherText.size(); ++i) {
+		chipherHash[a] = chipherText[i];
+		++a;
+	}
 }
 
-bool CheckPassword(std::string password) {
+bool isHash(std::vector<unsigned char> chipherHash) {
+	CalculateHash(plainText, hash);
+	if (hash == chipherHash) {
+		return true;
+	}
+	return false;
+}
 
+
+bool CheckPassword(std::string& password, std::vector<unsigned char> chipherHash) {
 	PasswordToKey(password);
 	if (DecryptAes(chipherText, plainText)) {
-
-
+		if (isHash(chipherHash)) {
+			Decrypt();
+			return true;
+		}
 		return false;
 	}
+		return false;
 
-	return true;
+	
 
 
 }
+
 
 int main()
 {
-	const size_t passwordCount = 10000;
+	 
+
+	 
+	std::vector<unsigned char> chipherHash(32);
+	ReadFile("A:/1/DecryptFile/chipher_text_brute_force", chipherText);
+	ReadChipherHash(chipherHash);
+
+	 
 	std::vector<std::string> passwords;
 	PassGen passwordsGen;
-	// std::string pass = "pass";
+	
+	 
+	 
 	try
 	{
-		OpenSSL_add_all_digests();
-
-
 		for (;;) {
-			if (passwordsGen.GetPasswordsBatch(passwords, passwordCount)) {
-				size_t i = 0;
-				for (; i < passwords.size(); ++i) {
-					if (CheckPassword(passwords[i])) {
-						std::cout << passwords[i];
-						Decrypt();
+			passwords.clear();
+			if (passwordsGen.GetPasswordsBatch(passwords)) {
+
+				for (size_t i = 0; i < passwords.size(); ++i) {
+					std::cout << passwords[i] << std::endl;
+					if (CheckPassword(passwords[i], chipherHash)) {
+						std::cout << "your pass = " << passwords[i] << std::endl;
+						return 0;
 					}
+
 				}
+			}
+			else {
+				std::cout << "not such passwords";
+					return 0;
 			}
 		}
 

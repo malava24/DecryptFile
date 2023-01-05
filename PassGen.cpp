@@ -1,5 +1,6 @@
 #include "PassGen.h"
  
+
 	bool PassGen::isZero() {
 		for (size_t i = 0; i < m_sate.size(); ++i){
 			if(m_sate[i] != 0){
@@ -10,6 +11,7 @@
 }
 
 bool PassGen::GetPasswordsBatch(std::vector<std::string>& passwords) {
+ 
 	if (m_passwordLength == 5) {
 		return false;
 	}
@@ -40,6 +42,7 @@ bool PassGen::GetPasswordsBatch(std::vector<std::string>& passwords) {
 		}
 	}
 	return true;
+ 
 }
 
 

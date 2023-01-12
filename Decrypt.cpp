@@ -7,12 +7,13 @@
 #include "openssl/evp.h"
 #include <openssl/aes.h>
 #include "openssl/sha.h"
-#include "../DecryptFile/PassGen.h"
+#include "PassGen.h"
 #include <mutex>
 #include <thread>
 #include <chrono>
+#include <Windows.h>
+#include "Decryptor.h"
 
- 
 
 unsigned char key[EVP_MAX_KEY_LENGTH];
 unsigned char iv[EVP_MAX_IV_LENGTH];
@@ -31,23 +32,18 @@ void ReadFile(const std::string& filePath, std::vector<unsigned char>& buf)
 	fileStream.close();
 }
 
-void WriteFile(const std::string& filePath, const std::vector<unsigned char>& buf)
+/*void WriteFile(const std::string& filePath, const std::vector<unsigned char>& buf)
 {
 	std::basic_ofstream<unsigned char> fileStream(filePath, std::ios::binary);
 	fileStream.write(&buf[0], buf.size());
 	fileStream.close();
 }
 
-void AppendToFile(const std::string& filePath, const std::vector<unsigned char>& buf)
-{
-	std::basic_ofstream<unsigned char> fileStream(filePath, std::ios::binary | std::ios::app);
-	fileStream.write(&buf[0], buf.size());
-	fileStream.close();
-}
+ 
 
 void PasswordToKey(std::string& password)
 {
-	
+
 	const EVP_MD* dgst = EVP_get_digestbyname("md5");
 	if (!dgst)
 	{
@@ -101,25 +97,25 @@ bool DecryptAes(const std::vector<unsigned char> chipherText, std::vector<unsign
 	}
 	plainTextSize += lastPartLen;
 	plainTextTextBuf.erase(plainTextTextBuf.begin() + plainTextSize, plainTextTextBuf.end());
- 
+
 	tmpPlainText.swap(plainTextTextBuf);
-	 
+
 
 	EVP_CIPHER_CTX_free(ctx);
 	return true;
 }
 
- 
-std::vector<unsigned char> chipherText;
+
 void Decrypt(std::vector<unsigned char>& tmpPlainText)
 {
 	WriteFile("A:/1/DecryptFile/plain_text2", tmpPlainText);
 }
 
+
 void ReadChipherHash(std::vector<unsigned char>& chipherHash) {
 	int a = 0;
-	for (size_t i = chipherText.size() - 32; i < chipherText.size(); ++i) {
-		chipherHash[a] = chipherText[i];
+	for (size_t i = g_chipherText.size() - 32; i < g_chipherText.size(); ++i) {
+		chipherHash[a] = g_chipherText[i];
 		++a;
 	}
 }
@@ -133,57 +129,12 @@ bool isHash(std::vector<unsigned char> chipherHash, std::vector<unsigned char> t
 }
 
 
-bool CheckPassword(std::string& password, std::vector<unsigned char> chipherHash, std::vector<unsigned char>& tmpPlainText, std::vector<unsigned char> tmpHash) {
+bool CheckPassword(std::string& password, std::vector<unsigned char> chipherHash) {
 	PasswordToKey(password);
-
-	if (DecryptAes(chipherText, tmpPlainText)) {
-		if (isHash(chipherHash, tmpPlainText, tmpHash)) {
-			Decrypt(tmpPlainText);
-			return true;
-		}
-		return false;
-	}
-	return false;
-
-
-
-
-}
-std::recursive_mutex mutex;
-PassGen passwordsGen;
-bool isPassFound = false;
-void GenPasswords(std::vector<unsigned char> chipherHash) {
-	std::vector<std::string> passwords;
-
 	std::vector<unsigned char> tmpPlainText;
 	std::vector<unsigned char> tmpHash;
 
-	while (!isPassFound) {
-		passwords.clear();
-
-		 mutex.lock();
-		 passwordsGen.GetPasswordsBatch(passwords);
-		 mutex.unlock();
-
-			for (size_t i = 0; i < passwords.size(); ++i) {
-				if (CheckPassword(passwords[i], chipherHash, tmpPlainText, tmpHash)) {
-					mutex.lock();
-					std::cout << passwords[i] << std::endl;
-					mutex.unlock();
-
-					 
-
-					isPassFound = true;
-					break;
-				}
-			}
-	}
-}
-
-bool DecryptWithPass(std::string& password, std::vector<unsigned char> chipherHash, std::vector<unsigned char>& tmpPlainText, std::vector<unsigned char> tmpHash) {
-	PasswordToKey(password);
-
-	if (DecryptAes(chipherText, tmpPlainText)) {
+	if (DecryptAes(g_chipherText, tmpPlainText)) {
 		if (isHash(chipherHash, tmpPlainText, tmpHash)) {
 			Decrypt(tmpPlainText);
 			return true;
@@ -192,61 +143,167 @@ bool DecryptWithPass(std::string& password, std::vector<unsigned char> chipherHa
 	}
 	return false;
 
+}
+	*/
 
+std::vector<unsigned char> g_chipherText;
+std::recursive_mutex g_mutex;
+PassGen g_passwordsGen;
+bool g_isPassFound = false;
+int g_numOfVerifiedPass = 0;
+bool g_isWritePassToFile = false;
+std::vector<std::string> g_verifiedPasswords;
+void GenPasswords(bool isWritePassToFile) {
+	std::vector<std::string> passwords;
+	Decryptor decryptor(g_chipherText);
+	
 
+	while (!g_isPassFound) {
+		passwords.clear();
 
+		g_mutex.lock();
+		if (!g_isPassFound) {
+			g_passwordsGen.GetPasswordsBatch(passwords);
+		}
+		g_mutex.unlock();
+
+		for (size_t i = 0; i < passwords.size(); ++i) {
+			g_mutex.lock();
+			++g_numOfVerifiedPass;
+			g_mutex.unlock();
+
+			if (decryptor.CheckPassword(passwords[i])) {
+				std::cout << std::endl << passwords[i] << "  -  your pass" << std::endl;
+				g_isPassFound = true;
+				break;
+			}
+			
+		}
+		g_mutex.lock();
+		if (isWritePassToFile) {
+
+			for (size_t i = 0; i < passwords.size(); ++i) {
+				g_verifiedPasswords.push_back(passwords[i]);
+			}
+		}
+		g_mutex.unlock();
+	}
+}
+/*std::vector<unsigned char> a;
+void Write() {
+	for (size_t i = 0; i < g_verifiedPasswords.size(); ++i) {
+		strcpy_s((char*)a[0], g_verifiedPasswords.size(), g_verifiedPasswords[i].c_str());
+	}
+}*/
+ 
+void ProgressVerifiedPass() {
+	// number of four-digit password combinations
+	const int maxNum = 1679616;
+
+	double oneProccent = 16796.16;
+	double curProccentInNum = 0;
+	double progress = 0;
+
+	while (!g_isPassFound)
+	{
+		if (progress > 100) {
+			throw std::exception("Password isn't found");
+		}
+		if (g_numOfVerifiedPass >= curProccentInNum) {
+			++progress;
+			curProccentInNum += oneProccent;
+		}
+		 
+		std::cout << g_numOfVerifiedPass << " from " << maxNum << " passwords checked " << "[" << progress << "%]";
+		 
+		for (int i = 0; i < 20; ++i) {
+			std::cout << "\b\b\b";
+		}
+
+	}
+}
+
+void DeleteCoursore() {
+	void* handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO structCursorInfo;
+	GetConsoleCursorInfo(handle, &structCursorInfo);
+	structCursorInfo.bVisible = FALSE;
+	SetConsoleCursorInfo(handle, &structCursorInfo);
 }
 
 int main()
 {
 	try
 	{
-		std::vector<unsigned char> chipherHash(32);
+		
+		DeleteCoursore();
 		OpenSSL_add_all_digests();
 
-		std::cout << "Do you know a password? - yes/no" << std::endl;
-		std::string answer;
-		std::cin >> answer;
-		
+		ReadFile("A:/1/DecryptFile/chipher_text_brute_force", g_chipherText);
+		 
 
-		if (answer == "yes") {
+		std::cout << "Do you know a password? - y/n" << std::endl;
+		std::string firstAnswer;
+		std::cin >> firstAnswer;
+
+
+		if (firstAnswer == "y") {
 			std::cout << "Enter the password" << std::endl;
 			std::string pass;
 			std::cin >> pass;
-			 
+ 
+			Decryptor decryptor(g_chipherText);
+		    std::vector<unsigned char> chipherHash(32);
+			decryptor.ReadChipherHash(chipherHash, g_chipherText);
 
-			std::vector<unsigned char> tmpPlainText;
-			std::vector<unsigned char> tmpHash;
-			DecryptWithPass(pass,chipherHash,tmpPlainText,tmpHash);
+			if (decryptor.CheckPassword(pass)) {
+				std::cout << "file successfully encrypted with password  :) - " << pass << std::endl;
+			}
+			else {
+				std::cerr << "smth wrong" << std::endl;
+			}
 
-			 
+
 
 		}
-		else if(answer == "no" ) {
+		else if (firstAnswer == "n") {
+			std::cout << "Do you want to save verified passwords in logPass.txt ?" << std::endl << "Enter - y/n" << std::endl;
+			std::string secAnswer;
+			std::cin >> secAnswer;
+
 			auto start = std::chrono::high_resolution_clock::now();
+
+			if (secAnswer == "y") {
+				g_isWritePassToFile = true;
+				std::ofstream outfile("../DecryptFile/logPass.txt");
+
+			}
+			std::thread t1(GenPasswords, g_isWritePassToFile);
+			std::thread t2(GenPasswords, g_isWritePassToFile);
+			std::thread t3(GenPasswords, g_isWritePassToFile);
+			std::thread t4(ProgressVerifiedPass);
+
 			
-			ReadFile("A:/1/DecryptFile/chipher_text_brute_force", chipherText);
-			ReadChipherHash(chipherHash);
-
-
-			std::thread t1(GenPasswords, std::ref(chipherHash));
-			std::thread t2(GenPasswords, std::ref(chipherHash));
-			std::thread t3(GenPasswords, std::ref(chipherHash));
+			t4.join();
 			t1.join();
 			t2.join();
 			t3.join();
 
+		//	Write();
+		//WriteFile("../DecryptFile/logPass.txt", a);
 
 			auto end = std::chrono::high_resolution_clock::now();
 
 			std::chrono::duration<float> duration = end - start;
 			std::cout << std::endl;
 			std::cout << "Time elapsed:  " << duration.count() << " sec." << std::endl;
+
+
 		}
-	
+
 	}
 	catch (const std::runtime_error& ex)
 	{
 		std::cerr << ex.what();
 	}
-}
+} 

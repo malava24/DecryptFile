@@ -21,9 +21,15 @@
     <ClCompile Include="Decrypt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Decryptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PassGen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Decryptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,7 +6,7 @@
 class PassGen {
 public:
 
-	 
+	
 	bool GetPasswordsBatch(std::vector<std::string>& passwords );
 
 

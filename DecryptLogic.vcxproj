@@ -140,9 +140,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Decrypt.cpp" />
+    <ClCompile Include="Decryptor.cpp" />
     <ClCompile Include="PassGen.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Decryptor.h" />
     <ClInclude Include="PassGen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

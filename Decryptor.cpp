@@ -95,7 +95,7 @@ Decryptor::Decryptor(const std::vector<unsigned char> chipherText) :
 
  void Decryptor::WriteToFileDecryptedData(std::vector<unsigned char>& tmpPlainText)
  {
-	 WriteFile("A:/1/DecryptFile/plain_text2", tmpPlainText);
+	 WriteFile("../DecryptFile/plain_text2", tmpPlainText);
  }
 
  void Decryptor::WriteFile(const std::string& filePath, const std::vector<unsigned char>& buf)
